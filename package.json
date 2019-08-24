@@ -1,19 +1,16 @@
 {
-  "name": "test",
+  "name": "addBarcodeToPDF",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "addBarcodeToPDF.js",
   "scripts": {
-    "addBarcodeToPDF": "node ./addBarcodeToPDF.js",
+    "start": "node ./addBarcodeToPDF.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Hirurgo",
+  "license": "MIT",
   "dependencies": {
     "barcode": "0.1.0",
-    "gm": "1.23.1",
-    "graphicsmagick": "0.0.1",
-    "hummus-recipe": "1.8.14",
-    "imagemagick": "0.1.3"
+    "hummus-recipe": "1.8.14"
   }
 }

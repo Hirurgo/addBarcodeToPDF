@@ -2,42 +2,62 @@ const fs = require('fs');
 const path = require('path');
 const barcode = require('barcode');
 const HummusRecipe = require('hummus-recipe');
-
-const pathForPdfFolder = 'C:\\test';
+const {
+  PDF_DIR_PATH,
+  BARCODE_DIR_PATH,
+  BARCODE_TYPE,
+  BARCODE_WIDTH,
+  BARCODE_HEIGHT,
+  BARCODE_POSITION_X,
+  BARCODE_POSITION_Y
+} = require('./constants');
 
 const dotIndex = string => string.lastIndexOf('.');
-const getFileName = file => file && file.slice(0, dotIndex(file));
-const getFileExtension = file => file && file.slice(dotIndex(file) + 1);
-const onlyPdf = file => getFileExtension(file) === 'pdf';
-const getLastPdf = files => files.filter(onlyPdf).pop();
-const getFiles = path => new Promise(
-  resolve => fs.readdir(
-    path,
-    (err, files) => resolve(files)
- )
-);
-const generatBarcode = data => new Promise(
+const onlyPdf = file => file.slice(dotIndex(file) + 1) === 'pdf';
+
+const generateBarcode = data => new Promise(
   resolve =>
-    barcode('code39', { data, width: 400, height: 100 })
-    .saveImage(
-      pathForPdfFolder + '\\barcode.png',
-      (err) => 	resolve(), console.log('File has been written!')
+    barcode(
+      BARCODE_TYPE,
+      {
+        data,
+        width: BARCODE_WIDTH,
+        height: BARCODE_HEIGHT
+      }
     )
+    .saveImage(BARCODE_PATH, resolve)
 );
+
+const addBarcodeToPdf = lastPdf => {
+  const pathToFile = `${PDF_DIR_PATH}\\${lastPdf}`;  
+  new HummusRecipe(pathToFile, pathToFile)
+    .editPage(1)
+    .text(
+      lastPdfName,
+      BARCODE_POSITION_X,
+      BARCODE_POSITION_Y,
+      {
+        color: '000000',
+        fontSize: 20
+      })
+    .image(
+      BARCODE_PATH,
+      BARCODE_POSITION_X,
+      BARCODE_POSITION_Y + 30,
+      {
+        width: BARCODE_WIDTH,
+        height: BARCODE_HEIGHT
+      })
+    .endPage()
+    .endPDF();
+}
 
 // START READ FROM THIS POINT ;)
 (async () => {
-  const files = await getFiles(pathForPdfFolder);
-  const lastPdf = getLastPdf(files);
-  const lastPdfName = getFileName(lastPdf);
-  const pathToFile = pathForPdfFolder + '\\' + lastPdf;
-  await generatBarcode(lastPdfName);
-  const pdfObj = new HummusRecipe(pathToFile, pathToFile);
-  pdfObj
-    .editPage(1)
-    .text(lastPdfName, 15, 10, { color: '000000', fontSize: 20 })
-    .image('barcode.png',  15, 40, {width: 300, keepAspectRatio: true})
-    .endPage()
-    .endPDF();
+  const files = fs.readdirSync(PDF_DIR_PATH);
+  const lastPdf = files.filter(onlyPdf).pop();
+  const lastPdfName = lastPdf.slice(0, dotIndex(file));
+  await generateBarcode(lastPdfName);
+  await addBarcodeToPdf(lastPdf);
+  fs.unlinkSync(BARCODE_PATH); // delete barcode image
 })();
-
