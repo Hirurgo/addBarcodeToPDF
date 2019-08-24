@@ -13,8 +13,16 @@ const {
 } = require('./constants');
 
 const dotIndex = string => string.lastIndexOf('.');
-const onlyPdf = file => file.slice(dotIndex(file) + 1).toLowerCase() === 'pdf';
 const getFileName = file => file.slice(0, dotIndex(file));
+const onlyPdf = file => file.slice(dotIndex(file) + 1).toLowerCase() === 'pdf';
+const addTimeStamp = file => ({ file, mtime: fs.lstatSync(`${PDF_DIR_PATH}\\${file}`).mtime })
+const byTime = (a, b) => a.mtime.getTime() - b.mtime.getTime();
+const getLastPdf = files => files
+    .filter(onlyPdf)
+    .map(addTimeStamp)
+    .sort(byTime)
+    .pop()
+    .file;
 
 const generateBarcode = data => new Promise(
   resolve =>
@@ -39,8 +47,8 @@ const addBarcodeToPdf = lastPdf => {
   const pathToFile = `${PDF_DIR_PATH}\\${lastPdf}`;  
   new HummusRecipe(pathToFile, pathToFile)
     .editPage(1)
-    .text(
       getFileName(lastPdf),
+    .text(
       BARCODE_POSITION_X,
       BARCODE_POSITION_Y,
       {
@@ -52,27 +60,37 @@ const addBarcodeToPdf = lastPdf => {
       BARCODE_POSITION_X,
       BARCODE_POSITION_Y + 30,
       {
-        width: BARCODE_WIDTH,
-        height: BARCODE_HEIGHT
+        width: BARCODE_WIDTH / 2,
+        height: BARCODE_HEIGHT / 2
       })
     .endPage()
     .endPDF();
-    console.log('Barcode is successfully added to PDF')
 }
 
 // START READ FROM THIS POINT ;)
 (async () => {
   const files = fs.readdirSync(PDF_DIR_PATH);
-  const lastPdf = files.filter(onlyPdf).pop();
-  if (!lastPdf) {
+  if (files.length === 0) {
     console.log('No Pdf files in folder')
     return;
-  } else {
-    console.log('PDF is successfully loaded')
-  } 
+  }
+  const lastPdf = getLastPdf(files)
   const lastPdfName = getFileName(lastPdf);
+  if (lastPdfName) {
+    console.log('PDF is successfully loaded');
+  } else {
+    console.log('Can\'t load PDF');
+    return;
+  }
+
   await generateBarcode(lastPdfName);
+  console.log('Barcode is successfully generated');
+
   await addBarcodeToPdf(lastPdf);
-  fs.unlinkSync(BARCODE_PATH); // delete barcode image
+  console.log('Barcode is successfully added to PDF')
+
+  fs.unlinkSync(BARCODE_PATH); // Delete barcode image
   console.log('Done')
+
+  setTimeout(() => {}, 1500) // Timeout before close node windows
 })();
