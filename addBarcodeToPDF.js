@@ -47,8 +47,8 @@ const addBarcodeToPdf = lastPdf => {
   const pathToFile = `${PDF_DIR_PATH}\\${lastPdf}`;  
   new HummusRecipe(pathToFile, pathToFile)
     .editPage(1)
-      getFileName(lastPdf),
     .text(
+      getFileName(lastPdf),
       BARCODE_POSITION_X,
       BARCODE_POSITION_Y,
       {
