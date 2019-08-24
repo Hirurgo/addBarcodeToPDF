@@ -4,7 +4,7 @@ const barcode = require('barcode');
 const HummusRecipe = require('hummus-recipe');
 const {
   PDF_DIR_PATH,
-  BARCODE_DIR_PATH,
+  BARCODE_PATH,
   BARCODE_TYPE,
   BARCODE_WIDTH,
   BARCODE_HEIGHT,
@@ -13,7 +13,8 @@ const {
 } = require('./constants');
 
 const dotIndex = string => string.lastIndexOf('.');
-const onlyPdf = file => file.slice(dotIndex(file) + 1) === 'pdf';
+const onlyPdf = file => file.slice(dotIndex(file) + 1).toLowerCase() === 'pdf';
+const getFileName = file => file.slice(0, dotIndex(file));
 
 const generateBarcode = data => new Promise(
   resolve =>
@@ -33,7 +34,7 @@ const addBarcodeToPdf = lastPdf => {
   new HummusRecipe(pathToFile, pathToFile)
     .editPage(1)
     .text(
-      lastPdfName,
+      getFileName(lastPdf),
       BARCODE_POSITION_X,
       BARCODE_POSITION_Y,
       {
@@ -56,7 +57,7 @@ const addBarcodeToPdf = lastPdf => {
 (async () => {
   const files = fs.readdirSync(PDF_DIR_PATH);
   const lastPdf = files.filter(onlyPdf).pop();
-  const lastPdfName = lastPdf.slice(0, dotIndex(file));
+  const lastPdfName = getFileName(lastPdf);
   await generateBarcode(lastPdfName);
   await addBarcodeToPdf(lastPdf);
   fs.unlinkSync(BARCODE_PATH); // delete barcode image
