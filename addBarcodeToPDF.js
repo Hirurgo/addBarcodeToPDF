@@ -26,7 +26,13 @@ const generateBarcode = data => new Promise(
         height: BARCODE_HEIGHT
       }
     )
-    .saveImage(BARCODE_PATH, resolve)
+    .saveImage(
+      BARCODE_PATH,
+      error => {
+        console.log(error ? error.message : 'Barcode is successfully generated');
+        resolve();
+      }
+    )
 );
 
 const addBarcodeToPdf = lastPdf => {
@@ -51,14 +57,22 @@ const addBarcodeToPdf = lastPdf => {
       })
     .endPage()
     .endPDF();
+    console.log('Barcode is successfully added to PDF')
 }
 
 // START READ FROM THIS POINT ;)
 (async () => {
   const files = fs.readdirSync(PDF_DIR_PATH);
   const lastPdf = files.filter(onlyPdf).pop();
+  if (!lastPdf) {
+    console.log('No Pdf files in folder')
+    return;
+  } else {
+    console.log('PDF is successfully loaded')
+  } 
   const lastPdfName = getFileName(lastPdf);
   await generateBarcode(lastPdfName);
   await addBarcodeToPdf(lastPdf);
   fs.unlinkSync(BARCODE_PATH); // delete barcode image
+  console.log('Done')
 })();
