@@ -34,13 +34,7 @@ const generateBarcode = data => new Promise(
         height: BARCODE_HEIGHT
       }
     )
-    .saveImage(
-      BARCODE_PATH,
-      error => {
-        console.log(error ? error.message : 'Barcode is successfully generated');
-        resolve();
-      }
-    )
+    .saveImage(BARCODE_PATH, resolve)
 );
 
 const addBarcodeToPdf = lastPdf => {
