@@ -84,7 +84,5 @@ const addBarcodeToPdf = lastPdf => {
   console.log('Barcode is successfully added to PDF')
 
   fs.unlinkSync(BARCODE_PATH); // Delete barcode image
-  console.log('Done')
-
-  setTimeout(() => {}, 1500) // Timeout before close node windows
+  console.log('Done');
 })();
